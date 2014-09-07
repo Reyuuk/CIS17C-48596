@@ -51,15 +51,11 @@ public:
 
 };
 
-
-
 /*
  *
- * Implementations for TriMatrix Below
+ * Implementations for TriMatrix Class Below
  *
  */
-
-
 
 //Constructor single dimensional array
 template <class T>
@@ -229,30 +225,4 @@ TriMatrix<T>::~TriMatrix(){
     }
 }
 
-
-            //make github folders book, homework, project, lab, class
-
-
 #endif // TRIMATRIX_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
