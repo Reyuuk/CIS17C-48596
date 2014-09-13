@@ -186,7 +186,7 @@ void SimpleVector<T>::Push(T element)
         }
 
         //delete old array
-        delete []aptr;
+        delete [] aptr;
         aptr = newArry;
     }
 
@@ -212,7 +212,7 @@ T SimpleVector<T>::Pull()
         arraySize--;
         return element;
     }
-    else return null;
+    else return NULL;
 }
 
 #endif // SIMPLEVECTOR_H
