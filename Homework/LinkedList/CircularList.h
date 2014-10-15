@@ -5,8 +5,9 @@
  */
 
 
-#ifndef LNKDLST_H
-#define	LNKDLST_H
+
+#ifndef CIRCULARLIST_H
+#define CIRCULARLIST_H
 
 #include <iostream>
 #include <string>
@@ -14,12 +15,12 @@
 using namespace std;
 
 template <class T>
-class LnkdLst {
+class CircularList {
 public:
     //Constructors
-    LnkdLst(T);
-    LnkdLst(const LnkdLst &);
-    LnkdLst& operator=(const LnkdLst &);
+    CircularList(T);
+    CircularList(const CircularList &);
+    CircularList operator=(const CircularList &);
 
     //Getters
     T first();
@@ -32,133 +33,136 @@ public:
     void insertAfter(T, T);
     void insertBefore(T, T);
 
-    virtual ~LnkdLst();
+    virtual ~CircularList();
 private:
     struct Node{
          T data;
+         Node *prev;
          Node *next;
     };
     Node *head;
     Node *worker;
-    Node *tail;
 };
 
-#endif	/* LNKDLST_H */
 
-
-
-
+#endif // CIRCULARLIST_H
 
 
 template <class T>
-LnkdLst<T>::LnkdLst(T firstData){
+CircularList<T>::CircularList(T firstData){
     head = new Node;
     head->data = firstData;
-    head->next = 0;
-    tail = head;
+    head->next = head;
+    head->prev = head;
 }
 
 template <class T>
-LnkdLst<T>::LnkdLst(const LnkdLst &orig){
-    Node *copyWorker;
-
+CircularList<T>::CircularList(const CircularList &orig){
     if(orig.head != 0){
         //Copy head
         head = new Node;
         head->data = orig.head->data;
-        copyWorker = orig.head->next;
+        head->next = head;
+        head->prev = head;
+
+        Node *origWorker = orig.head;
+        worker = head;
 
         //Begin iterating through nodes, copying
-        worker = head;
-        while(copyWorker != 0){
+        while(origWorker->next != head){
             worker->next = new Node;
+            worker->next->prev = worker;
             worker = worker->next;
-            worker->data = copyWorker->data;
-            copyWorker = copyWorker->next;
+            worker->data = origWorker->data;
+            origWorker = origWorker->next;
         }
-        tail = worker;
-        tail->next = 0;
+        worker->next = head;
+        head->prev = worker;
     }
     else head = 0;
 }
 
 template <class T>
-LnkdLst<T>& LnkdLst<T>::operator=(const LnkdLst &orig){
+CircularList<T>& CircularList<T>::operator=(const CircularList &orig){
     if(this!=&orig){
         //Delete old resources
         worker = head;
+        head->prev->next = 0;
         while(worker->next != 0){
             head = worker;
             worker = worker->next;
             delete head;
         }
 
-
-        //Copy head
+        //Copy new head
         head = new Node;
         head->data = orig.head->data;
-        Node *copyWorker = orig.head->next;
+        head->next = head;
+        head->prev = head;
+
+        Node *origWorker = orig.head;
+        worker = head;
 
         //Begin iterating through nodes, copying
-        worker = head;
-        while(copyWorker != 0){
+        while(origWorker->next != head){
             worker->next = new Node;
+            worker->next->prev = worker;
             worker = worker->next;
-            worker->data = copyWorker->data;
-            copyWorker = copyWorker->next;
+            worker->data = origWorker->data;
+            origWorker = origWorker->next;
         }
-        tail = worker;
-        tail->next = 0;
+        worker->next = head;
+        head->prev = worker;
     }
     return *this;
 }
 
 template <class T>
-T LnkdLst<T>::first(){
+T CircularList<T>::first(){
     return head->data;
 }
 
 template <class T>
-T LnkdLst<T>::last(){
-    return tail->data;
+T CircularList<T>::last(){
+    return head->prev->data;
 }
 
 template <class T>
-void LnkdLst<T>::append(T data){
-    tail->next = new Node;
-    tail = tail->next;
-    tail->data = data;
-    tail->next = 0;
+void CircularList<T>::append(T data){
+    worker = head->prev;
+    worker->next = new Node;
+    worker = worker->next;
+    worker->data = data;
+    worker->next = head;
+    head->prev = worker;
 }
 
 template <class T>
-void LnkdLst<T>::prepend(T data){
-    Node *newNode = new Node;
-    newNode->next = head;
-    newNode->data = data;
-    head = newNode;
+void CircularList<T>::prepend(T data){
+    worker = new Node;
+    worker->next = head;
+    worker->prev = head->prev;
+    worker->data = data;
+    head = worker;
 }
 
 template <class T>
-void LnkdLst<T>::insertBefore(T beforeData, T data){
+void CircularList<T>::insertBefore(T beforeData, T data){
     worker = head;
-    Node *tempNode = worker->next;
-    if(head->data == beforeData){
-        prepend(data);
-        return;
-    }
 
-    while(tempNode !=0){
-        if(tempNode->data == beforeData){
-            worker->next = new Node;
-            worker = worker->next;
+    while(worker->next != head){
+        if(worker->data == beforeData){
+            Node *tempNode = worker->prev;
+            worker->prev = new Node;
+            worker->prev->next = worker;
+            worker = worker->prev;
             worker->data = data;
-            worker->next = tempNode;
+            worker->prev = tempNode;
+            tempNode->next = worker;
             return;
         }
         else{
             worker = worker->next;
-            tempNode = tempNode->next;
         }
     }
     //If we got here, the insert data was never found. Append to the end of the list
@@ -166,16 +170,18 @@ void LnkdLst<T>::insertBefore(T beforeData, T data){
 }
 
 template <class T>
-void LnkdLst<T>::insertAfter(T afterData, T data){
+void CircularList<T>::insertAfter(T afterData, T data){
     worker = head;
 
-    while(worker !=0){
+    while(worker->next != head){
         if(worker->data == afterData){
             Node *tempNode = worker->next;
             worker->next = new Node;
+            worker->next->prev = worker;
             worker = worker->next;
             worker->data = data;
             worker->next = tempNode;
+            tempNode->prev = worker;
             return;
         }
         else worker = worker->next;
@@ -185,12 +191,12 @@ void LnkdLst<T>::insertAfter(T afterData, T data){
 }
 
 template <class T>
-string LnkdLst<T>::toString(){
+string CircularList<T>::toString(){
     worker = head;
     stringstream stream;
     string output;
 
-    while(worker !=0){
+    while(worker->next != head){
         stream << worker->data << " ";
         output = stream.str();
         worker = worker->next;
@@ -199,8 +205,9 @@ string LnkdLst<T>::toString(){
 }
 
 template <class T>
-LnkdLst<T>::~LnkdLst(){
+CircularList<T>::~CircularList(){
     worker = head;
+    head->prev->next = 0;
     while(worker != 0){
         head = worker;
         worker = worker->next;

@@ -9,5 +9,11 @@ SOURCES += \
 include(deployment.pri)
 qtcAddDeployment()
 
-HEADERS +=
+HEADERS += \
+    DblLnkLst.h \
+    Stack.h \
+    Queue.h \
+    CircularList.h \
+    PriorityList.h \
+    SortedList.h
 
